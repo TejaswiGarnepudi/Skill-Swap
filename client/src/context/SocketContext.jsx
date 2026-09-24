@@ -16,7 +16,7 @@ export const SocketProvider = ({ children }) => {
     if (isAuthenticated && token) {
       const socketEndpoint = import.meta.env.VITE_SOCKET_URL || 
         import.meta.env.VITE_API_URL || 
-        window.location.origin;
+        (import.meta.env.DEV ? 'http://localhost:5000' : 'https://skill-swap-server-yqck.onrender.com');
 
       newSocket = io(socketEndpoint, {
         auth: { token },

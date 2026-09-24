@@ -1,7 +1,11 @@
 import axios from 'axios';
 
-const apiBaseUrl = import.meta.env.VITE_API_URL 
-  ? `${import.meta.env.VITE_API_URL.replace(/\/$/, '')}/api` 
+const PRODUCTION_API_URL = 'https://skill-swap-server-yqck.onrender.com';
+
+const rawBaseUrl = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? '' : PRODUCTION_API_URL);
+
+const apiBaseUrl = rawBaseUrl 
+  ? `${rawBaseUrl.replace(/\/$/, '')}/api` 
   : '/api';
 
 const api = axios.create({
