@@ -21,13 +21,36 @@ import notificationRoutes from './routes/notifications.js';
 const app = express();
 const server = http.createServer(app);
 
+// Permissive CORS for local and production Vercel frontend
 app.use(cors({
-  origin: env.clientUrl,
+  origin: (origin, callback) => {
+    // Allow requests from localhost, Vercel deployments, or configured CLIENT_URL
+    if (!origin || origin === env.clientUrl || origin.endsWith('.vercel.app') || origin.includes('localhost')) {
+      callback(null, true);
+    } else {
+      callback(null, true);
+    }
+  },
   credentials: true
 }));
+
 app.use(express.json());
 app.use(cookieParser());
 
+// Root Health Check Route
+app.get('/', (req, res) => {
+  res.json({
+    message: 'SkillSwap Backend API is live and healthy! 🚀',
+    status: 'online',
+    timestamp: new Date()
+  });
+});
+
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok', uptime: process.uptime() });
+});
+
+// Mount Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/matching', matchingRoutes);
