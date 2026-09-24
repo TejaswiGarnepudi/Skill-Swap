@@ -14,8 +14,13 @@ export const SocketProvider = ({ children }) => {
   useEffect(() => {
     let newSocket;
     if (isAuthenticated && token) {
-      newSocket = io(window.location.origin, {
+      const socketEndpoint = import.meta.env.VITE_SOCKET_URL || 
+        import.meta.env.VITE_API_URL || 
+        window.location.origin;
+
+      newSocket = io(socketEndpoint, {
         auth: { token },
+        transports: ['websocket', 'polling']
       });
 
       newSocket.on('connect', () => {
