@@ -11,26 +11,49 @@ export const AuthProvider = ({ children }) => {
   });
   const [loading, setLoading] = useState(true);
 
+  // Run ONCE on app mount to restore session if token exists
   useEffect(() => {
-    const fetchUser = async () => {
-      const currentToken = localStorage.getItem('token');
-      if (currentToken && currentToken !== 'null' && currentToken !== 'undefined') {
+    let isMounted = true;
+    const initAuth = async () => {
+      const storedToken = localStorage.getItem('token');
+      if (storedToken && storedToken !== 'null' && storedToken !== 'undefined') {
         try {
           const res = await api.get('/auth/me');
-          setUser(res.data.user);
+          if (isMounted) {
+            if (res.data?.user) {
+              setUser(res.data.user);
+              setToken(storedToken);
+            } else {
+              localStorage.removeItem('token');
+              setToken(null);
+              setUser(null);
+            }
+          }
         } catch (error) {
-          console.error('Failed to load user', error);
-          localStorage.removeItem('token');
-          setToken(null);
-          setUser(null);
+          console.error('Failed to restore user session:', error);
+          if (isMounted) {
+            localStorage.removeItem('token');
+            setToken(null);
+            setUser(null);
+          }
         }
       } else {
-        setUser(null);
+        if (isMounted) {
+          setUser(null);
+          setToken(null);
+        }
       }
-      setLoading(false);
+      if (isMounted) {
+        setLoading(false);
+      }
     };
-    fetchUser();
-  }, [token]);
+
+    initAuth();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const login = async (email, password) => {
     const res = await api.post('/auth/login', { email, password });

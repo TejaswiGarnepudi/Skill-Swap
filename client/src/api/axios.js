@@ -25,7 +25,9 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response && error.response.status === 401) {
+    // Only handle automatic redirect on protected routes, not on auth routes
+    const isAuthRoute = error.config?.url?.includes('/auth/login') || error.config?.url?.includes('/auth/register');
+    if (error.response && error.response.status === 401 && !isAuthRoute) {
       localStorage.removeItem('token');
       const publicPaths = ['/login', '/register', '/'];
       if (!publicPaths.includes(window.location.pathname)) {
