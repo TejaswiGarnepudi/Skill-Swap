@@ -4,8 +4,10 @@ const PRODUCTION_API_URL = 'https://skill-swap-server-yqck.onrender.com';
 
 const rawBaseUrl = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? '' : PRODUCTION_API_URL);
 
-const apiBaseUrl = rawBaseUrl 
-  ? `${rawBaseUrl.replace(/\/$/, '')}/api` 
+// Normalize API base URL cleanly
+const cleanBaseUrl = rawBaseUrl ? rawBaseUrl.replace(/\/+$/, '') : '';
+const apiBaseUrl = cleanBaseUrl 
+  ? (cleanBaseUrl.endsWith('/api') ? cleanBaseUrl : `${cleanBaseUrl}/api`)
   : '/api';
 
 const api = axios.create({
@@ -14,7 +16,7 @@ const api = axios.create({
 
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
-  if (token) {
+  if (token && token !== 'null' && token !== 'undefined') {
     config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
@@ -25,7 +27,8 @@ api.interceptors.response.use(
   (error) => {
     if (error.response && error.response.status === 401) {
       localStorage.removeItem('token');
-      if (window.location.pathname !== '/login' && window.location.pathname !== '/register' && window.location.pathname !== '/') {
+      const publicPaths = ['/login', '/register', '/'];
+      if (!publicPaths.includes(window.location.pathname)) {
         window.location.href = '/login';
       }
     }

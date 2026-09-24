@@ -22,17 +22,35 @@ const app = express();
 const server = http.createServer(app);
 
 // Permissive CORS for local and production Vercel frontend
-app.use(cors({
+const corsOptions = {
   origin: (origin, callback) => {
-    // Allow requests from localhost, Vercel deployments, or configured CLIENT_URL
-    if (!origin || origin === env.clientUrl || origin.endsWith('.vercel.app') || origin.includes('localhost')) {
-      callback(null, true);
-    } else {
-      callback(null, true);
+    // Allow requests with no origin (e.g. mobile apps, curl, Postman)
+    if (!origin) return callback(null, true);
+
+    const cleanOrigin = origin.replace(/\/+$/, '');
+    const cleanClientUrl = (env.clientUrl || '').replace(/\/+$/, '');
+
+    // Allow configured client URL, localhost, 127.0.0.1, or any vercel.app deployment
+    if (
+      cleanOrigin === cleanClientUrl ||
+      cleanOrigin.endsWith('.vercel.app') ||
+      cleanOrigin.includes('localhost') ||
+      cleanOrigin.includes('127.0.0.1') ||
+      cleanOrigin === 'https://skill-swap-ashen-two.vercel.app'
+    ) {
+      return callback(null, true);
     }
+    return callback(null, true);
   },
-  credentials: true
-}));
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS', 'HEAD'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
+  exposedHeaders: ['Authorization'],
+  optionsSuccessStatus: 200
+};
+
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
 
 app.use(express.json());
 app.use(cookieParser());

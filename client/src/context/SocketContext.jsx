@@ -13,10 +13,12 @@ export const SocketProvider = ({ children }) => {
 
   useEffect(() => {
     let newSocket;
-    if (isAuthenticated && token) {
-      const socketEndpoint = import.meta.env.VITE_SOCKET_URL || 
+    if (isAuthenticated && token && token !== 'null' && token !== 'undefined') {
+      const rawEndpoint = import.meta.env.VITE_SOCKET_URL || 
         import.meta.env.VITE_API_URL || 
         (import.meta.env.DEV ? 'http://localhost:5000' : 'https://skill-swap-server-yqck.onrender.com');
+
+      const socketEndpoint = rawEndpoint.replace(/\/api\/?$/, '').replace(/\/+$/, '');
 
       newSocket = io(socketEndpoint, {
         auth: { token },

@@ -4,6 +4,7 @@
   "description": "SkillSwap — Peer-to-peer skill exchange and group learning platform",
   "private": true,
   "scripts": {
+    "start": "node server/server.js",
     "dev": "concurrently -n \"SERVER,CLIENT\" -c \"blue,green\" \"npm run dev --prefix server\" \"npm run dev --prefix client\"",
     "install:all": "npm install && npm install --prefix server && npm install --prefix client",
     "build:client": "npm run build --prefix client",

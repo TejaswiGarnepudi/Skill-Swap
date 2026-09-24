@@ -9,21 +9,37 @@ let io;
 export const initializeSocket = (server) => {
   io = new Server(server, {
     cors: {
-      origin: env.clientUrl,
+      origin: (origin, callback) => {
+        if (!origin) return callback(null, true);
+        const cleanOrigin = origin.replace(/\/+$/, '');
+        const cleanClientUrl = (env.clientUrl || '').replace(/\/+$/, '');
+        if (
+          cleanOrigin === cleanClientUrl ||
+          cleanOrigin.endsWith('.vercel.app') ||
+          cleanOrigin.includes('localhost') ||
+          cleanOrigin.includes('127.0.0.1') ||
+          cleanOrigin === 'https://skill-swap-ashen-two.vercel.app'
+        ) {
+          return callback(null, true);
+        }
+        return callback(null, true);
+      },
       methods: ['GET', 'POST'],
       credentials: true
     }
   });
 
   io.use((socket, next) => {
-    const token = socket.handshake.auth.token;
-    if (!token) return next(new Error('Authentication error'));
+    const token = socket.handshake.auth?.token;
+    if (!token || token === 'null' || token === 'undefined') {
+      return next(new Error('Authentication error: No token provided'));
+    }
     try {
       const decoded = jwt.verify(token, env.jwtSecret);
       socket.user = decoded;
       next();
     } catch (err) {
-      next(new Error('Authentication error'));
+      next(new Error('Authentication error: Invalid token'));
     }
   });
 
